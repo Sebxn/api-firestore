@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"strconv"
 
 	"server.go/entity"
 	"server.go/repository"
 
-	//"github.com/go-chi/chi"
+	"github.com/gorilla/mux"
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
@@ -73,31 +74,32 @@ func AddUser(resp http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(resp).Encode(user)
 }
 
-// revisar
-// func UpdateUser(resp http.ResponseWriter, req *http.Request) {
-// 	resp.Header().Set("Content-type", "application/json")
+func UpdateUser(resp http.ResponseWriter, req *http.Request) {
+	resp.Header().Set("Content-type", "application/json")
 
-// 	// Obtener el ID del usuario a actualizar desde la ruta o el cuerpo de la solicitud
-// 	// Puedes pasar el ID en la ruta o en el cuerpo de la solicitud, dependiendo de tu diseño de API
-// 	// Aquí asumimos que se pasa en la ruta
-// 	userID := chi.URLParam(req, "ID")
+	// Obtener el ID del usuario a actualizar desde la ruta o el cuerpo de la solicitud
+	vars := mux.Vars(req)
+	userID := vars["ID"]
 
-// 	var updatedUser entity.User
-// 	err := json.NewDecoder(req.Body).Decode(&updatedUser)
-// 	if err != nil {
-// 		resp.WriteHeader(http.StatusInternalServerError)
-// 		resp.Write([]byte(`{"error": "Error al decodificar la solicitud"}`))
-// 		return
-// 	}
+	ID, _ := strconv.ParseInt(userID, 10, 64)
 
-// 	// Actualizar el usuario en el repositorio
-// 	err = repo.Update(userID, &updatedUser)
-// 	if err != nil {
-// 		resp.WriteHeader(http.StatusInternalServerError)
-// 		resp.Write([]byte(`{"error": "Error al actualizar el usuario"}`))
-// 		return
-// 	}
+	var updatedUser entity.User
+	err := json.NewDecoder(req.Body).Decode(&updatedUser)
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		resp.Write([]byte(`{"error": "Error al decodificar la solicitud"}`))
+		return
+	}
 
-// 	resp.WriteHeader(http.StatusOK)
-// 	json.NewEncoder(resp).Encode(updatedUser)
-// }
+	// Actualizar el usuario en el repositorio
+	updatedUser.ID = ID
+	err = repo.Update(ID, &updatedUser)
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		resp.Write([]byte(`{"error": "Error al actualizar el usuario"}`))
+		return
+	}
+
+	resp.WriteHeader(http.StatusOK)
+	json.NewEncoder(resp).Encode(updatedUser)
+}

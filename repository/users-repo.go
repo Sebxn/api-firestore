@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"log"
+	"strconv"
 
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/iterator"
@@ -12,7 +13,7 @@ import (
 type UserRepository interface {
 	Save(user *entity.User) (*entity.User, error)
 	FindAll() ([]entity.User, error)
-	//Update(userID string, user *entity.User) error // Nueva función para actualizar usuario
+	Update(userID int64, user *entity.User) error // Nueva función para actualizar usuario
 }
 
 type repo struct{}
@@ -90,30 +91,21 @@ func (*repo) FindAll() ([]entity.User, error) {
 	return users, nil
 }
 
-// revisar
-// func (*repo) Update(userID string, user *entity.User) error {
-// 	ctx := context.Background()
-// 	client, err := firestore.NewClient(ctx, projectId)
-// 	if err != nil {
-// 		log.Fatal("Error al crear un cliente de firestore: ", err)
-// 		return err
-// 	}
+func (*repo) Update(userID int64, updatedUser *entity.User) error {
+	ctx := context.Background()
+	client, err := firestore.NewClient(ctx, projectId)
+	if err != nil {
+		log.Fatal("Error al crear un cliente de firestore: ", err)
+		return err
+	}
+	ID := strconv.FormatInt(userID, 10)
+	defer client.Close()
 
-// 	defer client.Close() // cierra el cliente de firestore una vez que la función termina
+	_, err = client.Collection(collectionName).Doc(ID).Set(ctx, updatedUser)
+	if err != nil {
+		log.Fatal("Error al actualizar el usuario: ", err)
+		return err
+	}
 
-// 	_, err = client.Collection(collectionName).Doc(userID).Set(ctx, map[string]interface{}{
-// 		"ID":              user.ID,
-// 		"Nombre":          user.Nombre,
-// 		"Apellido":        user.Apellido,
-// 		"SegundoApellido": user.SegundoApellido,
-// 		"Email":           user.Email,
-// 		"Rut":             user.Rut,
-// 		"Fono":            user.Fono,
-// 	})
-
-// 	if err != nil {
-// 		log.Fatal("Error al actualizar el usuario: ", err)
-// 		return err
-// 	}
-// 	return nil
-// }
+	return nil
+}

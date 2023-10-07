@@ -42,7 +42,8 @@ func main() {
 		// Llama a la función para registrar un usuario con correo y contraseña
 		rutas.RegisterUser(w, r, app)
 	}).Methods("POST")
-	//router.HandleFunc("/usuarios/{ID}", rutas.UpdateUser).Methods("PUT")
+
+	router.HandleFunc("/usuarios/{ID}", rutas.UpdateUser).Methods("PUT")
 
 	log.Println("Server listening on port", port) // imprime en el servidor
 	log.Fatal(http.ListenAndServe(port, router))
