@@ -14,6 +14,7 @@ type UserRepository interface {
 	Save(user *entity.User) (*entity.User, error)
 	FindAll() ([]entity.User, error)
 	Update(userID int64, user *entity.User) error // Nueva función para actualizar usuario
+	Delete(userID int64) error
 }
 
 type repo struct{}
@@ -102,6 +103,25 @@ func (*repo) Update(userID int64, updatedUser *entity.User) error {
 	defer client.Close()
 
 	_, err = client.Collection(collectionName).Doc(ID).Set(ctx, updatedUser)
+	if err != nil {
+		log.Fatal("Error al actualizar el usuario: ", err)
+		return err
+	}
+
+	return nil
+}
+
+func (*repo) Delete(userID int64) error {
+	ctx := context.Background()
+	client, err := firestore.NewClient(ctx, projectId)
+	if err != nil {
+		log.Fatal("Error al crear un cliente de firestore: ", err)
+		return err
+	}
+	ID := strconv.FormatInt(userID, 10)
+	defer client.Close()
+
+	_, err = client.Collection(collectionName).Doc(ID).Delete(ctx)
 	if err != nil {
 		log.Fatal("Error al actualizar el usuario: ", err)
 		return err

@@ -103,3 +103,25 @@ func UpdateUser(resp http.ResponseWriter, req *http.Request) {
 	resp.WriteHeader(http.StatusOK)
 	json.NewEncoder(resp).Encode(updatedUser)
 }
+
+// En tu archivo de rutas (rutas.go o similar)
+
+func DeleteUser(resp http.ResponseWriter, req *http.Request) {
+	resp.Header().Set("Content-type", "application/json")
+
+	// Obtener el ID del usuario a eliminar desde la ruta
+	vars := mux.Vars(req)
+	userID := vars["ID"]
+
+	ID, _ := strconv.ParseInt(userID, 10, 64)
+	// Eliminar el usuario en el repositorio
+	err := repo.Delete(ID)
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		resp.Write([]byte(`{"error": "Error al eliminar el usuario"}`))
+		return
+	}
+
+	resp.WriteHeader(http.StatusOK)
+	resp.Write([]byte(`{"message": "Usuario eliminado correctamente"}`))
+}
